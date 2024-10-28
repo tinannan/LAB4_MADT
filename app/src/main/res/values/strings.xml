@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">LAB4_MADT</string>
+    <string name="addnote">+</string>
+    <string name="notes">Notes</string>
+    <string name="delete">X</string>
+    <string name="delete_buttom">Delete</string>
+    <string name="enter_your_note_here">Enter your note here</string>
+    <string name="add_note">Add Note</string>
 </resources>
