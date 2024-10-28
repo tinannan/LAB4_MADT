@@ -10,6 +10,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
+    <EditText
+        android:id="@+id/noteName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:autofillHints="Name"
+        android:hint="@string/note_name"
+        android:inputType="text"
+        android:textSize="24sp"
+        android:textStyle="bold"/>
 <EditText
         android:id="@+id/editTextNote"
         android:layout_width="match_parent"
@@ -20,10 +29,10 @@
         android:textSize="20sp" />
 
     <Button
-        android:id="@+id/buttonAddNote"
+        android:id="@+id/buttonSaveNote"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/add_note" />
+        android:text="@string/save_note" />
 </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
