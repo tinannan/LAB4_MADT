@@ -6,6 +6,8 @@ import android.util.Log;
 import androidx.activity.EdgeToEdge;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -36,30 +38,36 @@ public class AddNoteActivity extends AppCompatActivity {
         noteContentEditText = findViewById(R.id.editTextNote);
         Button saveNoteButton = findViewById(R.id.buttonSaveNote);
 
-        // Set click listener for save button
+        //click listener for save button
         saveNoteButton.setOnClickListener(v -> saveNoteToJsonFile());
     }
     private void saveNoteToJsonFile() {
-        try {
-            String noteName = noteNameEditText.getText().toString();
-            String noteContent = noteContentEditText.getText().toString();
+        String noteName = noteNameEditText.getText().toString();
+        String noteContent = noteContentEditText.getText().toString();
 
-            // Load existing notes from JSON file
+        if (noteName.isEmpty() || noteContent.isEmpty()) {
+            // Show a warning using Toast
+            Toast.makeText(this, "Note name and content cannot be empty", Toast.LENGTH_SHORT).show();
+            return; // Exit the method without saving
+        }
+
+        try {
+            // load existing notes from JSON file
             JSONArray notesArray = loadNotesFromJsonFile();
 
-            // Generate a new unique ID based on the current number of notes
+            // id generation
             int noteId = notesArray.length();
 
-            // Create a new JSONObject for the note
+            // new JSONObject for the note
             JSONObject newNote = new JSONObject();
             newNote.put("name", noteName);
             newNote.put("id", noteId);
             newNote.put("content", noteContent);
 
-            // Add the new note to the array
+            // new note to the array
             notesArray.put(newNote);
 
-            // Save updated notes array back to JSON file
+            // save updated notes array back to JSON file
             FileOutputStream fos = openFileOutput("notes.json", MODE_PRIVATE);
             fos.write(notesArray.toString().getBytes(StandardCharsets.UTF_8));
             fos.close();
@@ -79,10 +87,10 @@ public class AddNoteActivity extends AppCompatActivity {
             FileInputStream fis = openFileInput("notes.json");
             byte[] data = new byte[fis.available()];
 
-            // Read data and store the number of bytes read
+            // store the number of bytes read
             int bytesRead = fis.read(data);
 
-            // Check if bytes were actually read
+            // check if bytes were actually read
             if (bytesRead > 0) {
                 String json = new String(data, 0, bytesRead, StandardCharsets.UTF_8);
                 return new JSONArray(json);
@@ -93,7 +101,7 @@ public class AddNoteActivity extends AppCompatActivity {
             Log.e(TAG, "Error loading notes from JSON file", e);
         }
 
-        return new JSONArray(); // Return an empty JSONArray if an error occurs or no data was read
+        return new JSONArray(); // returns an empty JSONArray if an error occurs/no data was read
     }
 
 }

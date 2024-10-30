@@ -3,6 +3,9 @@ package com.example.lab4_madt;
 import static android.content.ContentValues.TAG;
 
 import android.content.Context;
+import androidx.appcompat.app.AlertDialog;
+
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,7 +16,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -21,6 +27,7 @@ import androidx.core.view.WindowInsetsCompat;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,17 +46,24 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
+//notes view
         notesListView = findViewById(R.id.listView);
 
         loadNotes();
-
+        // click listener for add note button
         Button addNoteButton = findViewById(R.id.addNotebutton);
         addNoteButton.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddNoteActivity.class);
             startActivity(intent);
         });
+//long-click listener for delete
+        notesListView.setOnItemLongClickListener((parent, view, position, id) -> {
+            // show delete confirmation dialog
+            showDeleteDialog(position);
+            return true;
+        });
     }
+
 
     private void loadNotes() {
         try {
@@ -60,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject noteJson = notesArray.getJSONObject(i);
                 String name = noteJson.getString("name");
                 String content = noteJson.getString("content");
-                notes.add(new Note(name, content)); // Add each Note instance to the list
+                notes.add(new Note(name, content)); // add each Note instance to the list
             }
 
 
@@ -91,13 +105,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // custom adapter for Note class
-    public class NoteAdapter extends ArrayAdapter<Note> {
+    public static class NoteAdapter extends ArrayAdapter<Note> {
         public NoteAdapter(Context context, List<Note> notes) {
             super(context, 0, notes);
         }
 
+        @NonNull
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
+        public View getView(int position, View convertView, @NonNull ViewGroup parent) {
             Note note = getItem(position);
 
             if (convertView == null) {
@@ -107,10 +122,41 @@ public class MainActivity extends AppCompatActivity {
             TextView titleTextView = convertView.findViewById(R.id.note_title);
             TextView contentTextView = convertView.findViewById(R.id.note_content);
 
+            assert note != null;
             titleTextView.setText(note.getName());
             contentTextView.setText(note.getContent());
 
             return convertView;
+        }
+    }
+    private void showDeleteDialog(int position) {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete note")
+                .setMessage("Are you sure you want to delete this note?")
+                .setPositiveButton("Yes", (dialog, which) -> deleteNoteAtPosition(position))
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    // method to delete note from JSON and update ListView
+    private void deleteNoteAtPosition(int position) {
+        try {
+            JSONArray notesArray = loadNotesFromJsonFile();
+
+            // remove the note at the specified position from the array
+            notesArray.remove(position);
+
+            // updated array to json
+            FileOutputStream fos = openFileOutput("notes.json", MODE_PRIVATE);
+            fos.write(notesArray.toString().getBytes(StandardCharsets.UTF_8));
+            fos.close();
+
+            Toast.makeText(this, "Note has been deleted", Toast.LENGTH_SHORT).show();
+
+            // refresh the ListView
+            loadNotes();
+        } catch (Exception e) {
+            Log.e(TAG, "Error deleting note from JSON file", e);
         }
     }
 }
