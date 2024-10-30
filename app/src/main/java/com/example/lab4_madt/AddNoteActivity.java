@@ -41,6 +41,7 @@ public class AddNoteActivity extends AppCompatActivity {
         //click listener for save button
         saveNoteButton.setOnClickListener(v -> saveNoteToJsonFile());
     }
+    private static final int MAX_NOTE_SIZE = 3000;
     private void saveNoteToJsonFile() {
         String noteName = noteNameEditText.getText().toString();
         String noteContent = noteContentEditText.getText().toString();
@@ -50,13 +51,30 @@ public class AddNoteActivity extends AppCompatActivity {
             Toast.makeText(this, "Note name and content cannot be empty", Toast.LENGTH_SHORT).show();
             return; // Exit the method without saving
         }
+        //buffer overflow prevention
+        if (noteName.length() > MAX_NOTE_SIZE || noteContent.length() > MAX_NOTE_SIZE) {
+            Toast.makeText(this, "Note is too big! Maximum size is " + MAX_NOTE_SIZE + " characters.", Toast.LENGTH_SHORT).show();
+            return; // Exit the method without saving
+        }
+
 
         try {
             // load existing notes from JSON file
             JSONArray notesArray = loadNotesFromJsonFile();
 
             // id generation
-            int noteId = notesArray.length();
+            int maxId = -1; // Start with -1 to handle the case of no notes
+            for (int i = 0; i < notesArray.length(); i++) {
+                JSONObject note = notesArray.getJSONObject(i);
+                int currentId = note.getInt("id");
+                if (currentId > maxId) {
+                    maxId = currentId; // Update maxId if currentId is greater
+                }
+            }
+
+            // new ID will be maxId + 1
+            int noteId = maxId + 1;
+
 
             // new JSONObject for the note
             JSONObject newNote = new JSONObject();
